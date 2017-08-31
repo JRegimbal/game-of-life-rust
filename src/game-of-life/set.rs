@@ -28,10 +28,17 @@ impl set {
     }
 
     priv fn sum_neighbors(&self, index: u32) -> u32 {
-        
+       let mut sum = 0u32;
+       sum += if self.cells[index-self.y-1 + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index-self.y   + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index-self.y+1 + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index-1        + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index+1        + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index+self.y-1 + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index+self.y   + self.cells.len() % self.cells.len()] {1} else {0};
+       sum += if self.cells[index+self.y+1 + self.cells.len() % self.cells.len()] {1} else {0};
+       sum
     }
-
-
     fn update(&mut self) {
         let mut counter = 0u32;
         for c in self.cells.iter_mut() {
@@ -43,7 +50,6 @@ impl set {
             }
             counter += 1;
         }
-
         //actually update values
         for c in self.cells.iter_mut() {
             c.update();
