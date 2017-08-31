@@ -1,7 +1,8 @@
 mod cell;
 use rand::Rng;
+use std::fmt;
 
-struct set {
+pub struct set {
     x: u32,
     y: u32,
     aliveC: char,
@@ -54,5 +55,21 @@ impl set {
         for c in self.cells.iter_mut() {
             c.update();
         }
+    }
+}
+
+impl fnt::Display for set {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut s = String::new();
+        let mut counter = 0u32;
+        for i in self.cells.iter() {
+            s.put(if i.alive { self.aliveC } else { self.deadC });
+            counter += 1;
+            if counter == self.x {
+                counter = 0;
+                s.put('\n');
+            }
+        }
+        write!(f, "{}", s);
     }
 }
