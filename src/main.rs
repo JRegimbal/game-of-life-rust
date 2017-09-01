@@ -2,9 +2,14 @@ extern crate rand;
 use rand::{thread_rng, Rng};
 use std::fmt;
 
+#[derive(Copy)]
 struct Cell {
     alive: bool,
     next: bool,
+}
+
+impl Clone for Cell {
+    fn clone(&self) -> Cell { *self }
 }
 
 struct Set {
@@ -12,7 +17,7 @@ struct Set {
     y: u32,
     pub alive_c: char,
     pub dead_c: char,
-    cells: Vec<Cell>,
+    cells: Vec<Vec<Cell>>,
 }
 
 impl Cell {
@@ -32,7 +37,7 @@ impl Cell {
 
 impl Set {
     pub fn new(x_dim: u32, y_dim: u32) -> Set {
-        let t = Vec::<Cell>::with_capacity((x_dim * y_dim) as usize);
+        let t = vec![vec![Cell::new(); x_dim as usize]; y_dim as usize];
         Set {
             x: x_dim,
             y: y_dim,
@@ -44,48 +49,49 @@ impl Set {
 
     fn initialize(&mut self) {
         let mut rng = thread_rng();
-        let mut i = 0u32;
-        while i < self.x*self.y {
-            let mut c = Cell::new();
-            c.set(rng.gen_weighted_bool(3));
-            self.cells.push(c);
-            i += 1;
+        for x in self.cells.iter_mut() {
+            for y in x {
+                y.set(rng.gen_weighted_bool(3));
+            }
         }
     }
 
-    //TODO do math w index THEN convert to usize by size of Cell struct
-    fn sum_neighbors(&self, index: isize) -> u32 {
+    fn sum_neighbors(&self, x: i32, y: i32) -> u32 {
        let mut sum = 0u32;
-       let length = self.cells.len() as isize;
-       let y = self.y as isize;
-       sum += if self.cells[(index-y-1 + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index-y   + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index-y+1 + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index-1   + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index+1   + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index+y-1 + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index+y   + length % length) as usize].alive {1} else {0};
-       sum += if self.cells[(index+y+1 + length % length) as usize].alive {1} else {0};
+       let mut j = y-1;
+       let x_dim = self.x as i32;
+       let y_dim = self.y as i32;
+       while j <= y+1 {
+           let mut i = x-1;
+           while i <= x+1 {
+               sum += if self.cells[((i+x_dim)%x_dim) as usize][((j+y_dim)%y_dim) as usize].alive {1} else {0};
+               i += 1;
+           }
+           j += 1;
+       }
+       
+       sum -= if self.cells[x as usize][y as usize].alive {1} else {0};
        sum
     }
     fn update(&mut self) {
-        let mut counter = 0;
-        let length = self.cells.len() as isize;
-        while counter < length {
-            let neighbors = self.sum_neighbors(counter);
-            let c = &mut self.cells[counter as usize];
-            if c.alive && (neighbors == 2 || neighbors == 3) {
-                c.queue(true);
-            } else if !c.alive && neighbors == 3 {
-                c.queue(true);
-            } else {
-                c.queue(false);
+        for i in 0..self.x-1 {
+            for j in 0..self.y-1 {
+                let neighbors = self.sum_neighbors(i as i32, j as i32);
+                let c = &mut self.cells[i as usize][j as usize];
+                if c.alive && (neighbors == 2 || neighbors == 3) {
+                    c.queue(true);
+                } else if !c.alive && neighbors == 3 {
+                    c.queue(true);
+                } else {
+                    c.queue(false);
+                }
             }
-            counter += 1;
         }
         //actually update values
-        for c in self.cells.iter_mut() {
-            c.update();
+        for a in self.cells.iter_mut() {
+            for c in a {
+                c.update();
+            }
         }
     }
 }
@@ -93,14 +99,12 @@ impl Set {
 impl fmt::Display for Set {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut s = String::new();
-        let mut counter = 0u32;
+        
         for i in self.cells.iter() {
-            s.push(if i.alive { self.alive_c } else { self.dead_c });
-            counter += 1;
-            if counter == self.x {
-                counter = 0;
-                s.push('\n');
+            for j in i {
+                s.push(if j.alive {self.alive_c} else {self.dead_c});
             }
+            s.push('\n');
         }
 
         write!(f, "{}", s)
