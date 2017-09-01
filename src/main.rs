@@ -53,26 +53,26 @@ impl Set {
         }
     }
 
-    fn sum_neighbors(&self, index: usize) -> u32 {
+    fn sum_neighbors(&self, index: isize) -> u32 {
        let mut sum = 0u32;
-       let length = self.cells.len();
-       let y = self.y as usize;
-       sum += if self.cells[index-y-1 + length % length].alive {1} else {0};
-       sum += if self.cells[index-y   + length % length].alive {1} else {0};
-       sum += if self.cells[index-y+1 + length % length].alive {1} else {0};
-       sum += if self.cells[index-1   + length % length].alive {1} else {0};
-       sum += if self.cells[index+1   + length % length].alive {1} else {0};
-       sum += if self.cells[index+y-1 + length % length].alive {1} else {0};
-       sum += if self.cells[index+y   + length % length].alive {1} else {0};
-       sum += if self.cells[index+y+1 + length % length].alive {1} else {0};
+       let length = self.cells.len() as isize;
+       let y = self.y as isize;
+       sum += if self.cells[(index-y-1 + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index-y   + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index-y+1 + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index-1   + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index+1   + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index+y-1 + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index+y   + length % length) as usize].alive {1} else {0};
+       sum += if self.cells[(index+y+1 + length % length) as usize].alive {1} else {0};
        sum
     }
     fn update(&mut self) {
         let mut counter = 0;
-        let length = self.cells.len();
+        let length = self.cells.len() as isize;
         while counter < length {
             let neighbors = self.sum_neighbors(counter);
-            let c = &mut self.cells[counter];
+            let c = &mut self.cells[counter as usize];
             if c.alive && (neighbors == 2 || neighbors == 3) {
                 c.queue(true);
             } else if !c.alive && neighbors == 3 {
