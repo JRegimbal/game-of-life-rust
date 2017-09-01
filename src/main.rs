@@ -53,6 +53,7 @@ impl Set {
         }
     }
 
+    //TODO do math w index THEN convert to usize by size of Cell struct
     fn sum_neighbors(&self, index: isize) -> u32 {
        let mut sum = 0u32;
        let length = self.cells.len() as isize;
