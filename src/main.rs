@@ -112,11 +112,16 @@ impl fmt::Display for Set {
 }
 
 fn main() {
-    let mut game = Set::new(20, 20);
+    let x = 20;
+    let y = 20;
+    let mut game = Set::new(x, y);
     game.initialize();
 
     loop {
-        println!("{}", game);
+        print!("{}", game);
         game.update();
-    }
+        std::thread::sleep(std::time::Duration::from_millis(250));
+        print!("\x1B[{}A", y);
+        print!("\r");
+        }
 }
